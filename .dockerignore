@@ -1,0 +1,22 @@
+# ملفات لا تدخل الصورة أبدًا (أصغر حجمًا + لا تسريب أسرار)
+.git
+.gitignore
+.devcontainer
+node_modules
+npm-debug.log*
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+templates
+demo
+proxy
+docs
+*.md
+render.yaml
+.env
+.env.*
+*.pem
+*.key
+coverage
+dist
+tmp

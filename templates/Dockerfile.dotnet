@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+# ==================================================================
+#  قالب .NET (ASP.NET Core Web / API) — نفس قواعد القالب الموحّد
+#  لا تغيّر إلا الأسطر المعلَّمة بـ [CHANGE]
+# ==================================================================
+
+# [CHANGE] إصدار .NET (10.0 هو الإصدار LTS الحالي)
+ARG DOTNET_VERSION=10.0
+
+# ---------- المرحلة 1: البناء والنشر (SDK كامل) ----------
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
+WORKDIR /src
+# [CHANGE] مسار ملف المشروع .csproj
+COPY *.csproj ./
+RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+# ---------- المرحلة 2: صورة التشغيل (Runtime فقط بدون SDK) ----------
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS runtime
+ARG APP_VERSION=1.0.0
+LABEL org.opencontainers.image.version="${APP_VERSION}"
+ENV APP_VERSION="${APP_VERSION}" \
+    ASPNETCORE_HTTP_PORTS=8080
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# الأمان: مستخدم غير إداري مدمج في صور .NET الرسمية
+USER $APP_UID
+
+EXPOSE 8080
+# ملاحظة: صورة aspnet لا تحتوي curl — فحص الصحة يتم عبر المنصة
+# (Kubernetes probes) على المسار /health الذي يضيفه التطبيق
+
+# [CHANGE] اسم ملف الـ dll الناتج
+ENTRYPOINT ["dotnet", "MyApp.dll"]

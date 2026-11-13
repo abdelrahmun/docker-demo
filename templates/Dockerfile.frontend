@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+# ==================================================================
+#  قالب الواجهات (Angular / React / Vue) يُقدَّم عبر Nginx
+#  لا تغيّر إلا الأسطر المعلَّمة بـ [CHANGE]
+#  Flutter Web: ابنِ بـ "flutter build web" واستخدم مرحلة التشغيل
+#  فقط مع نسخ build/web بدلًا من dist
+# ==================================================================
+
+# [CHANGE] إصدار Node المستخدم في البناء
+ARG NODE_VERSION=22
+
+# ---------- المرحلة 1: بناء ملفات الواجهة ----------
+FROM node:${NODE_VERSION}-alpine AS build
+WORKDIR /src
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# ---------- المرحلة 2: تقديم الملفات عبر Nginx بمستخدم غير إداري ----------
+FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
+
+# توجيه كل المسارات إلى index.html (ضروري لتطبيقات SPA)
+COPY <<'EOF' /etc/nginx/conf.d/default.conf
+server {
+    listen 8080;
+    root /usr/share/nginx/html;
+    location / { try_files $uri $uri/ /index.html; }
+    location = /health { return 200 "ok"; }
+}
+EOF
+
+# [CHANGE] مجلد ناتج البناء: Angular = dist/<project>/browser | React(Vite) = dist | CRA = build
+COPY --from=build /src/dist/ /usr/share/nginx/html/
+
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/health || exit 1

@@ -1,0 +1,14 @@
+# نشر مجاني على Render — يقرأ الـ Dockerfile نفسه ويشغّل التطبيق برابط عام
+services:
+  - type: web
+    name: docker-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: cloud
+      - key: DEMO_MODE
+        value: "true"

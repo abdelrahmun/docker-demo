@@ -1,0 +1,14 @@
+{
+  "name": "docker-demo-app",
+  "version": "1.0.0",
+  "description": "Demo app for the Docker containers prototype presentation",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED"
+}
