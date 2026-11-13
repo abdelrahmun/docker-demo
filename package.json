@@ -1,7 +1,7 @@
 {
-  "name": "docker-demo-app",
+  "name": "it-helpdesk-demo",
   "version": "1.0.0",
-  "description": "Demo app for the Docker containers prototype presentation",
+  "description": "IT Help Desk demo app for the Docker containers presentation",
   "main": "src/server.js",
   "private": true,
   "scripts": {
@@ -10,5 +10,8 @@
   "engines": {
     "node": ">=22"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
 }

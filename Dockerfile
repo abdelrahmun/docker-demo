@@ -27,7 +27,7 @@ RUN npm ci --omit=dev && npm cache clean --force && mkdir -p node_modules
 FROM node:${NODE_VERSION}-alpine AS runtime
 
 # [CHANGE] بيانات التطبيق — تُمرَّر وقت البناء: --build-arg APP_VERSION=2.0.0
-ARG APP_NAME="Demo App"
+ARG APP_NAME="IT Help Desk"
 ARG APP_VERSION=1.0.0
 
 # بيانات وصفية قياسية (OCI) تظهر في السجل وأدوات الفحص

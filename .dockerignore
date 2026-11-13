@@ -1,7 +1,9 @@
 # ملفات لا تدخل الصورة أبدًا (أصغر حجمًا + لا تسريب أسرار)
 .git
+.github
 .gitignore
 .devcontainer
+.DS_Store
 node_modules
 npm-debug.log*
 Dockerfile*
@@ -9,7 +11,6 @@ docker-compose*.yml
 .dockerignore
 templates
 demo
-proxy
 docs
 *.md
 render.yaml

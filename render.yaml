@@ -1,4 +1,5 @@
-# نشر مجاني على Render — يقرأ الـ Dockerfile نفسه ويشغّل التطبيق برابط عام
+# نشر مجاني على Render — حاوية واحدة من نفس الـ Dockerfile برابط عام
+# بدون DATABASE_URL → التطبيق يشتغل بتخزين مؤقت (in-memory) فيه 3 طلبات تجريبية
 services:
   - type: web
     name: docker-demo
