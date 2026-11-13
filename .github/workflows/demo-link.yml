@@ -1,0 +1,71 @@
+# ==================================================================
+#  Demo Link — يشغّل الـ Demo كامل على GitHub ويطلّع لينك عام مؤقت
+#  التشغيل: Actions ← Demo Link ← Run workflow
+#  اللينك يظهر في خطوة "Open public link" ويشتغل طول مدة التشغيل
+# ==================================================================
+name: Demo Link
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "مدة تشغيل الـ Demo بالدقائق (أقصى حاجة 300)"
+        required: true
+        default: "120"
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start full environment (proxy + 3 apps + redis)
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:8080/health && break
+            sleep 2
+          done
+          echo
+          docker compose ps
+
+      - name: Open public link
+        run: |
+          curl -fsSL -o cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared
+          ./cloudflared tunnel --no-autoupdate --url http://localhost:8080 > tunnel.log 2>&1 &
+          URL=""
+          for i in $(seq 1 45); do
+            URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' tunnel.log | head -1 || true)
+            [ -n "$URL" ] && break
+            sleep 2
+          done
+          if [ -z "$URL" ]; then
+            echo "Tunnel did not start:"; cat tunnel.log; exit 1
+          fi
+          echo "=============================================="
+          echo "  DEMO LINK:  $URL"
+          echo "=============================================="
+          echo "::notice title=Demo link::$URL"
+          echo "## Demo link" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL=$URL" >> "$GITHUB_ENV"
+
+      - name: Keep the demo running
+        env:
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          case "$MINUTES" in ''|*[!0-9]*) MINUTES=120 ;; esac
+          [ "$MINUTES" -gt 300 ] && MINUTES=300
+          echo "Demo is live at $URL for $MINUTES minutes"
+          END=$(( $(date +%s) + MINUTES * 60 ))
+          while [ "$(date +%s)" -lt "$END" ]; do
+            sleep 60
+            curl -fs -o /dev/null http://localhost:8080/health && echo "$(date +%H:%M) ok" || echo "$(date +%H:%M) app not ready"
+          done
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v || true
